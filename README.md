@@ -14,8 +14,8 @@ To make training efficient, we first extract high-dimensional embeddings:
 These embeddings are stored to avoid redundant computation during the model training phase.
 
 ### 2. Trimodal Model Training
-The second stage involves feeding the pre-extracted audio and video embeddings, along with the corresponding textual transcripts whcih are converted to embeddings by Roberta, into the Transformer-based fusion model. The model utilizes cross-modal attention mechanisms to learn and weight the most relevant features across all three modalities simultaneously, enabling more robust emotion prediction by capturing the nuances of each data stream.
----
+
+The second stage involves feeding the pre-extracted audio and video embeddings, along with the corresponding textual transcripts which are converted to embeddings by RoBERTa, into the Transformer-based fusion model. The model utilizes inter modality attention mechanisms to learn and weight the most relevant features across all three modalities simultaneously, enabling more robust emotion prediction by capturing the nuances of each data stream.
 
 ## Custom Focal Loss for MELD
 The MELD dataset contains 7 classes with a significant **class imbalance** (e.g., a high number of 'Neutral' samples compared to 'Disgust' or 'Fear').
