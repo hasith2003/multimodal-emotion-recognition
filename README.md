@@ -13,9 +13,8 @@ To make training efficient, we first extract high-dimensional embeddings:
 * **Audio:** Audio signals are processed into rich feature vectors.
 These embeddings are stored to avoid redundant computation during the model training phase.
 
-### 2. Model Training
-The second stage involves feeding these pre-extracted embeddings into the Transformer-based fusion model. The model learns to attend to relevant features across both modalities to predict the final emotion.
-
+### 2. Trimodal Model Training
+The second stage involves feeding the pre-extracted audio and video embeddings, along with the corresponding textual transcripts whcih are converted to embeddings by Roberta, into the Transformer-based fusion model. The model utilizes cross-modal attention mechanisms to learn and weight the most relevant features across all three modalities simultaneously, enabling more robust emotion prediction by capturing the nuances of each data stream.
 ---
 
 ## Custom Focal Loss for MELD
@@ -28,8 +27,6 @@ Focal Loss down-weights the loss contributed by easy-to-classify examples and fo
 
 ## Project Structure
 - `Emotion.ipynb`: The primary notebook for model training and evaluation.
-- `test_fabnet.py`: Script for extracting video-based facial embeddings.
-- `test_retinaface.py`: Preprocessing script for face detection.
 - `.gitignore`: Configured to exclude raw datasets and large `.pth` model weights.
 
 ## Setup
