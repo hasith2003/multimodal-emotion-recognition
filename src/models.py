@@ -109,3 +109,21 @@ class Trimodal_SSE_FT(nn.Module):
         combined_features = torch.cat((speech_final, text_final, video_final), dim=1)
         logits = self.classifier(combined_features) 
         return logits
+
+
+class FocalLoss(nn.Module):
+    """
+    Custom Focal Loss module to handle class imbalance.
+    """
+    def __init__(self, alpha=None, gamma=2.0):
+        super(FocalLoss, self).__init__()
+        self.alpha = alpha  # PyTorch tensor of normalized class weights
+        self.gamma = gamma  # Focusing parameter
+
+    def forward(self, inputs, targets):
+        import torch.nn.functional as F
+        ce_loss = F.cross_entropy(inputs, targets, reduction='none', weight=self.alpha)
+        pt = torch.exp(-F.cross_entropy(inputs, targets, reduction='none'))
+        focal_loss = ((1 - pt) ** self.gamma) * ce_loss
+        return focal_loss.mean()
+

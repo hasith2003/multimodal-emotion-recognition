@@ -20,10 +20,11 @@ The second stage involves feeding the pre-extracted audio and video embeddings, 
 ## Custom Focal Loss for MELD
 The MELD dataset contains 7 classes with a significant **class imbalance** (e.g., a high number of 'Neutral' samples compared to 'Disgust' or 'Fear').
 
-While standard **CrossEntropy Loss** often leads the model to over-predict majority classes, I introduced a **Custom Focal Loss** implementation. 
+While standard **CrossEntropy Loss** yields a higher overall test accuracy (56.86% vs 47.47%), it heavily over-predicts majority classes (like 'neutral') and completely fails to classify minority emotions, resulting in 0% precision/recall on classes like 'fear'.
 
 ### Why Focal Loss?
-Focal Loss down-weights the loss contributed by easy-to-classify examples and focuses the training on hard, misclassified samples. This ensures the model achieves higher accuracy across **all 7 classes**, specifically improving the performance on minority categories.
+Focal Loss down-weights the loss contributed by easy-to-classify examples (the majority classes) and focuses the training on hard, misclassified samples. This improves the performance and representation of minority categories, providing a more balanced classification behavior across all 7 emotions, even though the global test accuracy is lower.
+
 
 ## Project Structure
 
@@ -64,7 +65,11 @@ python src/check_pipeline.py
 ### 3. Training & Evaluation
 To train a model from scratch:
 ```bash
-python src/train.py --epochs 5 --batch_size 8 --lr 2e-5
+# Train using standard CrossEntropy Loss (default)
+python src/train.py --epochs 5 --batch_size 8 --lr 2e-5 --loss ce
+
+# Train using Custom Focal Loss (computes class weights dynamically)
+python src/train.py --epochs 5 --batch_size 8 --lr 2e-5 --loss focal --gamma 2.0
 ```
 
 To run validation and test evaluation only using a saved checkpoint path:

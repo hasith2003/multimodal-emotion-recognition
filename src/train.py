@@ -15,7 +15,7 @@ from src.config import (
     SAVED_MODEL_PATH, LABEL_MAP
 )
 from src.dataset import MeldDataset, pad_collate_fn
-from src.models import Trimodal_SSE_FT
+from src.models import Trimodal_SSE_FT, FocalLoss
 
 
 def train_epoch(model, loader, optimizer, criterion, device, epoch, total_epochs):
@@ -88,6 +88,8 @@ def main():
     parser.add_argument("--lr", type=float, default=LEARNING_RATE, help="Learning rate")
     parser.add_argument("--eval_only", action="store_true", help="Only run evaluation using saved weights")
     parser.add_argument("--model_path", type=str, default=SAVED_MODEL_PATH, help="Path to load/save model weights")
+    parser.add_argument("--loss", choices=["ce", "focal"], default="ce", help="Loss function to use (ce = CrossEntropy, focal = Focal Loss)")
+    parser.add_argument("--gamma", type=float, default=2.0, help="Gamma parameter for Focal Loss")
     args = parser.parse_args()
 
     print(f"Initializing Trimodal pipeline on {DEVICE}...")
@@ -140,7 +142,23 @@ def main():
         dev_loader = DataLoader(dev_dataset, batch_size=args.batch_size * 2, shuffle=False, collate_fn=pad_collate_fn)
 
         optimizer = torch.optim.AdamW(model.parameters(), lr=args.lr)
-        criterion = nn.CrossEntropyLoss()
+
+        # Loss selection
+        if args.loss == "focal":
+            print("Calculating Class Weights for Focal Loss...")
+            class_counts = train_dataset.df['Emotion'].value_counts()
+            ordered_emotions = ['neutral', 'joy', 'sadness', 'anger', 'surprise', 'fear', 'disgust']
+            counts_array = [class_counts.get(emo, 1) for emo in ordered_emotions]
+            total_samples = sum(counts_array)
+            weights = [total_samples / c for c in counts_array]
+            class_weights = torch.FloatTensor(weights).to(DEVICE)
+            class_weights = class_weights / class_weights.sum()
+            print(f"Computed Class Weights: {class_weights.cpu().numpy()}")
+            criterion = FocalLoss(alpha=class_weights, gamma=args.gamma)
+            print(f"Using Focal Loss (gamma={args.gamma})")
+        else:
+            criterion = nn.CrossEntropyLoss()
+            print("Using standard CrossEntropy Loss")
         
         best_val_acc = 0.0
         
